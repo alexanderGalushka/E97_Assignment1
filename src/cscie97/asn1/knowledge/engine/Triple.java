@@ -23,4 +23,20 @@ public class Triple
 		return identifier;
 	}
 	
+	
+	public Node getSubject_obj ()
+	{
+		return subject;
+	}
+	
+	public Predicate getPredicate_obj ()
+	{
+		return predicate;
+	}	
+	
+	public Node getObject_obj ()
+	{	
+		return object;
+	}	
+	
 }
