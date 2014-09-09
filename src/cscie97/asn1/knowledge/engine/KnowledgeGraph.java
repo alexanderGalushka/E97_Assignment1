@@ -18,6 +18,7 @@ public class KnowledgeGraph
 	private Map<String, Triple> tripleMap;
 	private Map<String, Set<Triple>> queryMapSet;	
     private static KnowledgeGraph _obj;
+    private List<int[]> binTable;
     
     private KnowledgeGraph ()
     {
@@ -25,6 +26,7 @@ public class KnowledgeGraph
     	predicateMap = new HashMap();
     	tripleMap = new HashMap(); 
     	queryMapSet = new HashMap();
+    	binTable = getBinTable ();
     }
     
     // instead of creating new operator, declare a method and that will create object and return it.
@@ -55,6 +57,7 @@ public class KnowledgeGraph
 		for ( Triple element : listOfTriples )
 		{
 			triple = element.getIdentifier();
+			
 			subject_obj= element.getSubject_obj();
 			subject = subject_obj.getIdentifier();
 			
@@ -64,7 +67,7 @@ public class KnowledgeGraph
 			predicate_obj = element.getPredicate_obj(); 
 			predicate = predicate_obj.getIdentifier();
 			
-			//toss into different maps
+			//stuff data into different maps
 			if ( !nodeMap.containsKey( subject ) )
 			{
 				nodeMap.put( subject, subject_obj );
@@ -79,51 +82,72 @@ public class KnowledgeGraph
 				predicateMap.put( predicate, predicate_obj );
 			}
 			
-			if ( !tripleMap.containsKey( predicate ) )
+			if ( !tripleMap.containsKey( triple ) )
 			{
 				tripleMap.put( triple, element );
 			}
 			
 
-			if ( !queryMapSet.containsKey(triple) )
+			if ( !queryMapSet.containsKey( triple ) )
 			{
 				Set<Triple> setOfTriples = new HashSet<Triple>();
 				
-				for ( int i = 0; i<8; i++)
+				for ( int i = 0; i < binTable.size(); i++)
 				{
-					;
+					setOfTriples.add( createQueryTriple ( binTable.get(i), subject, predicate, object ) );
 				}
+				
+				queryMapSet.put(triple, setOfTriples);
 			}
-			//Map<String, Set<Triple>> queryMapSet
+			
 			
 		}
-		
-		
-		// precompute all the permutation per triple for the queryMapSet:
-		// triple becomes the key, permutations - values, provides the efficient search
-		// due to the MAP implementation
 			
-		return ;
 	}
 	
-	/*
-	public static Set<String> getKeysByValue(Map map, E value)
+	
+	public Set<Triple> executeQuery (Triple query)
 	{
-	    Set<String> keys = new HashSet<String>();
-	    for (Entry entry : map.entrySet()) 
+		String queryString = query.getIdentifier();
+		
+	    Set<Triple> result = new HashSet<Triple>();
+	    
+	    for (String key : queryMapSet.keySet()) 
 	    {
-	        if (value.equals(entry.getValue()))
-	        {
-	            keys.add(entry.getKey());
-	        }
+	    	for (Triple tiple_obj : queryMapSet.get( key ) )
+	    	{
+	    		if ( queryString.equals(tiple_obj.getIdentifier() ) )
+	    		{
+	    			result.add( tripleMap.get( key ) );
+	    		}
+	    	}
 	    }
-	    return keys;
+	    return result;
 	}
-	*/
-	public Set<Triple> executeQuery ( Triple query )
+	
+	
+	public Set<Triple> executeQueryString (String queryString)
 	{
-		return queryMapSet.get( queryMapSet );
+
+	    Set<Triple> result = new HashSet<Triple>();
+	    
+	    for (String key : queryMapSet.keySet()) 
+	    {
+	    	for (Triple tiple_obj : queryMapSet.get( key ) )
+	    	{
+	    		if ( queryString.equals(tiple_obj.getIdentifier() ) )
+	    		{
+	    			result.add( tripleMap.get( key ) );
+	    		}
+	    	}
+	    }
+	    return result;
 	}
+	
+	//public Set<Triple> executeQuery ( Triple query )
+	//{
+	//	return queryMapSet.get( queryMapSet );
+	//}
 	
 	public Node getNode ( String identifier )
 	{
@@ -153,12 +177,15 @@ public class KnowledgeGraph
 			
 	}
 	
+
+	
+	//I could hardcode binary table, but have decided to implement the function
 	private List<int[]> getBinTable ()
-	{		
+	{	
+		List<int[]> binTable = new ArrayList<int[]>();
     	for ( int i = 0; i<8; i++)
 		{
     		String binString;
-    		List<int[]> binTable = new ArrayList<int[]>();
     		binString = String.format("%03d", new BigInteger(Integer.toBinaryString(i)));
     		
             int[] binNum = new int[binString.length()];
@@ -172,6 +199,30 @@ public class KnowledgeGraph
 		}
    
 		return binTable;
+	}
+	
+	private Triple createQueryTriple ( int[] binArray, String subject, String predicate, String object)
+	{
+		Triple resultTriple;
+		Node subject_obj;
+		Node object_obj;
+		Predicate predicate_obj;
+		
+		String[] arrayOfElements = {subject, predicate, object};
+		
+		for (int i = 0; i<binArray.length; i++)
+		{
+			if (binArray[i] == 1)
+			{
+				arrayOfElements[i] = "?";
+			}
+		}
+		
+		subject_obj = new Node ( arrayOfElements[0] );
+		predicate_obj = new Predicate( arrayOfElements[1] );
+		object_obj = new Node ( arrayOfElements[2] );
+		resultTriple = new Triple ( subject_obj, predicate_obj, object_obj );
+		return resultTriple;
 	}
 	
 }
