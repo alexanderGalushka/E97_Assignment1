@@ -7,53 +7,66 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-
 public class Importer
 {
 	
-	public List<Triple> listOfTriples = new LinkedList<Triple>();
+	private List<Triple> listOfTriples;
+	private Utilities util; 	
+	private BufferedReader br;
 	
-	public void importTripleFile ( String fileName ) throws IOException
+	public Importer()
+	{
+		listOfTriples = new LinkedList<Triple>();
+		util = new Utilities();
+	}
+	
+	public void importTripleFile ( String fileName ) throws ImportException
 	{
 		// Construct BufferedReader from FileReader
-		BufferedReader br = new BufferedReader( new FileReader( fileName ) );
-	 
-		String line = null;
-		while ( ( line = br.readLine() ) != null )
+		try
 		{
-			String[] tempResult = line.split( " " );
-			if ( tempResult.length == 3 && !arrayContains( tempResult, "?" ) )
-			{
-				//creating duplicate instances???
-				Node mySubject = new Node ( tempResult[0].trim() );
-				Predicate myPredicate = new Predicate ( tempResult[1].trim() );
-				Node myObbject = new Node ( removeLastChar (tempResult[2].trim() ) );
-				
-				Triple myTriple = new Triple ( mySubject, myPredicate, myObbject );
-				listOfTriples.add(myTriple);				
-			}
-			
+			br = new BufferedReader( new FileReader( fileName ) );
 		}
-		br.close();
+		catch (IOException e)
+		{
+			throw new ImportException ( e.toString() );
+		}
+		 
+		String line = null;
+		try
+		{
+			while ( ( line = br.readLine() ) != null )
+			{
+				String[] tempResult = line.split( " " );
+				if ( tempResult.length == 3 && !util.arrayContains( tempResult, "?" ) )
+				{
+					//creating duplicate instances???
+					Node mySubject = new Node ( tempResult[0].trim() );
+					Predicate myPredicate = new Predicate ( tempResult[1].trim() );
+					Node myObbject = new Node ( util.removeLastChar (tempResult[2].trim() ) );
+					
+					Triple myTriple = new Triple ( mySubject, myPredicate, myObbject );
+					listOfTriples.add( myTriple );				
+				}
+				
+			}
+		} 
+		catch (IOException e)
+		{
+
+			throw new ImportException ( e.toString() );
+		}
+		
+		try
+		{
+			br.close();
+		}
+		catch (IOException e)
+		{
+
+			throw new ImportException ( e.toString() );
+		}
 		
 		KnowledgeGraph.getInstance().importTriples ( listOfTriples );
-	}
-	
-	private static boolean arrayContains( String[] array, String target )
-	{
-		for(String s: array)
-		{
-			if( s.equals( target ) )
-				return true;
-		}
-		return false;
-	}
-
-	private static String removeLastChar(String s) {
-	    if (!s.isEmpty() && s != null)
-	    {
-	        s = s.substring(0, s.length()-1);
-	    }
-	    return s;
 	}
 }

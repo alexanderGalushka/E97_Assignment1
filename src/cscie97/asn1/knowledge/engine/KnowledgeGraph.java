@@ -6,14 +6,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.Set;
 
 
 public class KnowledgeGraph
 {
-	
-	private Map<String,Node> nodeMap;
+	private Map<String, Node> nodeMap;
 	private Map<String, Predicate> predicateMap;
 	private Map<String, Triple> tripleMap;
 	private Map<String, Set<Triple>> queryMapSet;	
@@ -22,11 +20,16 @@ public class KnowledgeGraph
     
     private KnowledgeGraph ()
     {
-    	nodeMap = new HashMap();
-    	predicateMap = new HashMap();
-    	tripleMap = new HashMap(); 
-    	queryMapSet = new HashMap();
+    	nodeMap = new HashMap<String, Node>();
+    	predicateMap = new HashMap<String, Predicate>();
+    	tripleMap = new HashMap<String, Triple>(); 
+    	queryMapSet = new HashMap<String, Set<Triple>>();
     	binTable = getBinTable ();
+    }
+    
+    public Map<String, Triple> getTripleMap ()
+    {
+    	return tripleMap;
     }
     
     // instead of creating new operator, declare a method and that will create object and return it.
@@ -108,20 +111,22 @@ public class KnowledgeGraph
 	
 	public Set<Triple> executeQuery (Triple query)
 	{
-		String queryString = query.getIdentifier();
-		
-	    Set<Triple> result = new HashSet<Triple>();
-	    
-	    for (String key : queryMapSet.keySet()) 
-	    {
-	    	for (Triple tiple_obj : queryMapSet.get( key ) )
-	    	{
-	    		if ( queryString.equals(tiple_obj.getIdentifier() ) )
-	    		{
-	    			result.add( tripleMap.get( key ) );
-	    		}
-	    	}
-	    }
+		Set<Triple> result = new HashSet<Triple>();
+		if ( query != null)
+		{
+			String queryString = query.getIdentifier();
+	
+		    for (String key : queryMapSet.keySet()) 
+		    {
+		    	for (Triple tiple_obj : queryMapSet.get( key ) )
+		    	{
+		    		if ( queryString.equals(tiple_obj.getIdentifier() ) )
+		    		{
+		    			result.add( tripleMap.get( key ) );
+		    		}
+		    	}
+		    }
+		}
 	    return result;
 	}
 	
@@ -178,7 +183,6 @@ public class KnowledgeGraph
 	}
 	
 
-	
 	//I could hardcode binary table, but have decided to implement the function
 	private List<int[]> getBinTable ()
 	{	
